@@ -1,0 +1,3 @@
+module "sts" {
+    source = "./sts"
+}
