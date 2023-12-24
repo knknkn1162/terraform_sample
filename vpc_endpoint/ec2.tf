@@ -18,7 +18,8 @@ resource "aws_instance" "private" {
   instance_type = "t2.micro"
   vpc_security_group_ids = [module.sg_ec2.security_group_id]
   subnet_id = module.az_0.private_subnet_id
-  associate_public_ip_address = true
+  # default
+  #associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.example.name
   
   tags = {
