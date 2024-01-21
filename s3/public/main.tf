@@ -8,12 +8,14 @@ resource "aws_s3_bucket_acl" "public" {
     aws_s3_bucket_ownership_controls.public
   ]
   bucket = aws_s3_bucket.public.id
+  # Canned ACL; see https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl
   acl    = "public-read"
 }
 
 resource "aws_s3_bucket_ownership_controls" "public" {
   bucket = aws_s3_bucket.public.id
   rule {
+    # see https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html#object-ownership-overview
     object_ownership = "ObjectWriter"
   }
 }
