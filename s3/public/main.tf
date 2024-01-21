@@ -1,41 +1,49 @@
+data "aws_caller_identity" "current" {}
+variable "bucket_name" {}
+
+locals {
+    account_id = data.aws_caller_identity.current.account_id
+}
+
 resource "aws_s3_bucket" "public" {
-  bucket = "public-pragmatic-terraform-235983"
+  bucket = var.bucket_name
+  force_destroy = true
 }
 
-resource "aws_s3_bucket_acl" "public" {
-  depends_on = [
-    aws_s3_bucket_public_access_block.public,
-    aws_s3_bucket_ownership_controls.public
-  ]
+resource "aws_s3_bucket_policy" "public" {
   bucket = aws_s3_bucket.public.id
-  # Canned ACL; see https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl
-  acl    = "public-read"
-}
-
-resource "aws_s3_bucket_ownership_controls" "public" {
-  bucket = aws_s3_bucket.public.id
-  rule {
-    # see https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html#object-ownership-overview
-    object_ownership = "ObjectWriter"
-  }
+  policy = data.aws_iam_policy_document.public.json
 }
 
 
 resource "aws_s3_bucket_public_access_block" "public" {
   bucket = aws_s3_bucket.public.id
 
-  block_public_acls       = false
+  #block_public_acls       = false
   #block_public_policy     = false
   #ignore_public_acls      = false
-  #restrict_public_buckets = false
+  restrict_public_buckets = false
 }
 
-resource "aws_s3_bucket_cors_configuration" "pubic" {
+
+data "aws_iam_policy_document" "public" {
+  statement {
+    effect = "Allow"
+    actions = ["s3:GetObject"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.public.id}/*"]
+
+    principals {
+      type = "*"
+      identifiers = [ "*" ]
+    }
+  }
+  depends_on = [aws_s3_bucket_website_configuration.example]
+}
+
+resource "aws_s3_bucket_website_configuration" "example" {
   bucket = aws_s3_bucket.public.id
-  cors_rule {
-    allowed_origins = ["https://example.com"]
-    allowed_methods = ["GET"]
-    allowed_headers = ["*"]
-    max_age_seconds = 3000
+
+  index_document {
+    suffix = "index.html"
   }
 }
